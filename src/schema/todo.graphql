@@ -25,11 +25,11 @@ enum TodoStatus {
 """
 Completion percentage categories
 """
-enum completion_level {
-  not_started
-  in_progress
-  almost_done
-  finished
+enum CompletionLevel {
+  NOT_STARTED
+  IN_PROGRESS
+  ALMOST_DONE
+  FINISHED
 }
 
 """
