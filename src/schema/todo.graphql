@@ -69,7 +69,7 @@ type Todo {
   """
   Priority level for this todo
   """
-  priority_level: Int
+  priorityLevel: Int
 
   """
   Tags associated with this todo
