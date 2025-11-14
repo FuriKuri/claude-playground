@@ -135,8 +135,7 @@ jobs:
             Beginne jetzt mit dem Review!
 
           claude_args: |
-            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr list:*),Bash(cat:*),Bash(grep:*),Bash(find:*)" 
-            --allowed-read-paths ".claude/*,src/*,docs/*" 
+            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr list:*),Bash(cat:*),Bash(grep:*),Bash(find:*)"
             --model claude-sonnet-4-20250514
 
       - name: Check for Review Status
