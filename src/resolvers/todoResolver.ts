@@ -56,16 +56,26 @@ export const todoResolvers = {
 
   Mutation: {
     setPriority: async (_: any, { id, priority }: any, context: any) => {
-      console.log('Setting priority for todo:', id, priority)
+      const log = logger.child({ correlationId: context.correlationId })
+
+      log.info('Setting priority for todo', { todoId: id, priority })
 
       const todo = await todoService.setPriority(id, priority)
 
       if (!todo) {
-        throw new Error('Todo not found')
+        return {
+          __typename: 'TodoNotFoundError',
+          message: 'Todo not found',
+          code: 'TODO_NOT_FOUND',
+          todoId: id
+        }
       }
 
-      console.log('Priority set successfully')
-      return todo
+      log.info('Priority set successfully', { todoId: id })
+      return {
+        __typename: 'SetPrioritySuccess',
+        todo
+      }
     },
 
     createTodo: async (_: any, { input }: any, context: any) => {
@@ -209,5 +219,9 @@ export const todoResolvers = {
 
   DeleteTodoResult: {
     __resolveType: (obj: any) => obj.__typename || 'Todo'
+  },
+
+  SetPriorityResult: {
+    __resolveType: (obj: any) => obj.__typename
   }
 }

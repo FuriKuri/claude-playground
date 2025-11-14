@@ -25,11 +25,11 @@ enum TodoStatus {
 """
 Priority eines Todos
 """
-enum todo_priority {
-  low
-  medium
-  high
-  urgent
+enum TodoPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 """
@@ -48,12 +48,12 @@ type Todo {
   """
   Priority level of the todo
   """
-  priority_level: todo_priority
+  priorityLevel: TodoPriority
 
   """
   Timestamp when priority was set
   """
-  priority_set_at: Int
+  prioritySetAt: DateTime
 
   """
   @deprecated Use 'description' field instead.
@@ -69,7 +69,7 @@ input CreateTodoInput {
   title: String!
   description: String
   dueDate: Date
-  priority_level: todo_priority
+  priorityLevel: TodoPriority
 }
 
 """
@@ -80,7 +80,7 @@ input UpdateTodoInput {
   description: String
   status: TodoStatus
   dueDate: Date
-  priority_level: todo_priority
+  priorityLevel: TodoPriority
 }
 
 """
@@ -117,11 +117,19 @@ type TodoNotFoundError {
 }
 
 """
+Success result for setPriority mutation
+"""
+type SetPrioritySuccess {
+  todo: Todo!
+}
+
+"""
 Result-Typen für Mutations (✅ Regel 2: Union Types für strukturierte Fehlerbehandlung)
 """
 union CreateTodoResult = CreateTodoSuccess | ValidationError
 union UpdateTodoResult = Todo | ValidationError | TodoNotFoundError
 union DeleteTodoResult = Todo | TodoNotFoundError
+union SetPriorityResult = SetPrioritySuccess | TodoNotFoundError
 
 type Query {
   """
@@ -159,5 +167,5 @@ type Mutation {
   """
   Set priority for a todo
   """
-  setPriority(id: ID!, priority: todo_priority!): Todo
+  setPriority(id: ID!, priority: TodoPriority!): SetPriorityResult!
 }

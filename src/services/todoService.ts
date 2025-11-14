@@ -21,8 +21,8 @@ interface Todo {
   updatedAt: string
   completedAt?: string
   notes?: string
-  priority_level?: string
-  priority_set_at?: number
+  priorityLevel?: string
+  prioritySetAt?: string
 }
 
 // ✅ Regel 10: Circuit Breaker für DB-Operationen
@@ -63,7 +63,7 @@ class TodoService {
   async create(input: any): Promise<Todo> {
     const id = uuidv4()
     const now = new Date().toISOString()
-    const priorityTimestamp = input.priority_level ? Date.now() : null
+    const priorityTimestamp = input.priority_level ? new Date().toISOString() : null
 
     const result = await withRetry<QueryResult>(() =>
       dbBreaker.fire(
@@ -89,7 +89,7 @@ class TodoService {
     }
 
     const now = new Date().toISOString()
-    const priorityTimestamp = input.priority_level ? Date.now() : null
+    const priorityTimestamp = input.priority_level ? new Date().toISOString() : null
 
     const result = await withRetry<QueryResult>(() =>
       dbBreaker.fire(
@@ -165,7 +165,7 @@ class TodoService {
       return null
     }
 
-    const timestamp = Date.now()
+    const timestamp = new Date().toISOString()
 
     const result = await withRetry<QueryResult>(() =>
       dbBreaker.fire(
@@ -192,8 +192,8 @@ class TodoService {
       updatedAt: row.updated_at,
       completedAt: row.completed_at,
       notes: row.description,
-      priority_level: row.priority_level,
-      priority_set_at: row.priority_set_at
+      priorityLevel: row.priority_level,
+      prioritySetAt: row.priority_set_at
     }
   }
 }
