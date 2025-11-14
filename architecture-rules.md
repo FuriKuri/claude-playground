@@ -31,9 +31,9 @@ Jede Regel enthält:
 ### Regel
 
 GraphQL Schemas MÜSSEN aussagekräftige Typen verwenden und folgen der Namenskonvention:
-- **Types**: PascalCase (z.B. `User`, `OrderItem`, `PaymentMethod`)
+- **Types** (inkl. Enum-Namen): PascalCase (z.B. `User`, `OrderItem`, `PaymentMethod`, `UserRole`, `TodoStatus`)
 - **Fields**: camelCase (z.B. `firstName`, `orderDate`, `isActive`)
-- **Enums**: SCREAMING_SNAKE_CASE (z.B. `ORDER_STATUS`, `PAYMENT_TYPE`)
+- **Enum-Werte**: SCREAMING_SNAKE_CASE (z.B. `ADMIN`, `USER`, `PENDING`, `COMPLETED`)
 
 ### Begründung
 
