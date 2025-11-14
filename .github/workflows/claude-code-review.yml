@@ -83,36 +83,9 @@ jobs:
           echo "Check PR comments for detailed feedback"
 
       - name: Auto-fix Architecture Violations
-        id: claude-autofix
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-
-          prompt: |
-            Auto-fix architecture violations in PR #${{ github.event.pull_request.number }}
-
-            CRITICAL: You MUST use the Edit tool to fix the files! Just reading is not enough!
-
-            Files to fix:
-            1. src/schema/todo.graphql - Fix enum names and fields
-            2. src/resolvers/todoResolver.ts - Remove console.log, add logger
-            3. src/services/todoService.ts - Replace Date.now() with ISO 8601
-
-            Required changes:
-            • todo_priority → TodoPriority (enum name)
-            • low, medium, high, urgent → LOW, MEDIUM, HIGH, URGENT (enum values)
-            • priority_level → priorityLevel (field)
-            • priority_set_at → prioritySetAt (field)
-            • console.log(...) → logger.info(...) (add import logger)
-            • Date.now() → new Date().toISOString()
-            • Int timestamp → DateTime scalar
-            • Add Union type for setPriority mutation
-            • Add Zod validation
-
-            DO NOT commit - workflow will do that.
-
-          claude_args: |
-            --model claude-sonnet-4-20250514
+        run: |
+          chmod +x .github/scripts/auto-fix-violations.sh
+          .github/scripts/auto-fix-violations.sh
 
       - name: Commit and Push Fixes
         if: success()
