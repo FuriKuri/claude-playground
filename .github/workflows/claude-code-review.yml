@@ -32,40 +32,43 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           
           prompt: |
-            Review PR #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"
+            PR #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"
             Repo: ${{ github.repository }}
+            Commit: ${{ github.event.pull_request.head.sha }}
+
+            IMPORTANT: You MUST create inline comments on specific code lines in the "Files changed" view!
 
             Steps:
-            1. Read rules: cat architecture-rules.md | head -500
-            2. Get diff: gh pr diff ${{ github.event.pull_request.number }}
-            3. Find violations (Rules 1,2,3,4,7 - MUSS)
-            4. For EACH violation: Create inline comment at exact line using:
-               gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
-                 -f body="❌ **Rule X Violation**\n\n[Description]\n\n**Fix**: [Suggestion]" \
-                 -f path="src/file.ts" \
-                 -f line=10 \
-                 -f side="RIGHT"
-            5. Post summary: gh pr comment ${{ github.event.pull_request.number }} -b "SUMMARY"
+            1. cat architecture-rules.md | head -500
+            2. gh pr diff ${{ github.event.pull_request.number }}
+            3. Find ALL violations (Rules 1,2,3,4,7)
+            4. For EACH violation, create inline comment:
 
-            Focus on:
-            - Rule 1: Naming (PascalCase/camelCase/SCREAMING_SNAKE_CASE)
-            - Rule 2: Errors (Union types, structured errors)
-            - Rule 3: Logging (JSON format, no console.log)
-            - Rule 4: Dates (ISO 8601, not Unix timestamps)
-            - Rule 7: Validation (explicit Zod validation)
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
+              -f body="❌ **Rule 1: Naming Convention**
 
-            Summary format:
-            # 🏗️ Architecture Review Summary
-            ## Total Violations: X
-            - Rule 1: X violations
-            - Rule 2: X violations
-            - Rule 3: X violations
-            - Rule 4: X violations
-            - Rule 7: X violations
+            The enum name \`todo_priority\` should use PascalCase.
 
-            ## Status: [✅ APPROVED | ❌ CHANGES_REQUESTED]
+            **Fix**: Rename to \`TodoPriority\`
 
-            See inline comments for details.
+            **Why**: Rule 1 requires PascalCase for GraphQL types and enums (ISO 25010: Usability/Learnability)" \
+              -f path="src/schema/todo.graphql" \
+              -f line=28 \
+              -f side="RIGHT" \
+              -f commit_id="${{ github.event.pull_request.head.sha }}"
+
+            5. After ALL inline comments: gh pr comment ${{ github.event.pull_request.number }} -b "# Review Summary
+            ✅ X inline comments posted
+            Status: CHANGES_REQUESTED"
+
+            Rules to check:
+            - Rule 1: PascalCase types, camelCase fields, SCREAMING_SNAKE_CASE enums
+            - Rule 2: Union types for mutations, structured errors
+            - Rule 3: Winston logger (JSON), NO console.log
+            - Rule 4: ISO 8601 DateTime, NO Unix timestamps
+            - Rule 7: Explicit Zod validation
+
+            CRITICAL: Create inline comment for EVERY single violation found!
 
           claude_args: |
             --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr list:*),Bash(gh api:*),Bash(cat:*),Bash(grep:*),Bash(find:*)"
