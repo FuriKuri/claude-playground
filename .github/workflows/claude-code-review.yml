@@ -14,16 +14,18 @@ jobs:
   claude-review:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # Needed for auto-fix commits
       pull-requests: write
       issues: read
       id-token: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Volle History für besseren Kontext
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Claude Architecture Review
         id: claude-review
@@ -79,3 +81,69 @@ jobs:
         run: |
           echo "Claude review completed"
           echo "Check PR comments for detailed feedback"
+
+      - name: Auto-fix Architecture Violations
+        id: claude-autofix
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          prompt: |
+            PR #${{ github.event.pull_request.number }}: Auto-fix architecture violations
+
+            TASK: Fix ALL architecture violations found in the code review.
+
+            Steps:
+            1. cat architecture-rules.md | head -500
+            2. Read the files with violations:
+               - src/schema/todo.graphql
+               - src/resolvers/todoResolver.ts
+               - src/services/todoService.ts
+
+            3. Fix ALL violations:
+               Rule 1: Rename todo_priority → TodoPriority, priority_level → priorityLevel, low → LOW, etc.
+               Rule 2: setPriority must return Union type (SetPriorityResult)
+               Rule 3: Replace console.log with logger.info/warn
+               Rule 4: Replace Date.now() with new Date().toISOString(), Int → DateTime scalar
+               Rule 7: Add Zod validation for setPriority input
+
+            4. Use Edit tool to fix each file
+            5. DO NOT commit or push - the workflow will do that
+
+            IMPORTANT: Fix the actual code files, not just comments!
+
+          claude_args: |
+            --model claude-sonnet-4-20250514
+
+      - name: Commit and Push Fixes
+        if: success()
+        run: |
+          git config user.name "Claude Architecture Bot"
+          git config user.email "claude-bot@anthropic.com"
+
+          git add src/
+
+          if git diff --staged --quiet; then
+            echo "No fixes needed"
+          else
+            git commit -m "🤖 Auto-fix: Apply architecture compliance fixes
+
+          Applied by Claude Architecture Review workflow
+
+          Fixes:
+          - Rule 1: Naming conventions (PascalCase, camelCase, SCREAMING_SNAKE_CASE)
+          - Rule 2: Union types for error handling
+          - Rule 3: Winston logger instead of console.log
+          - Rule 4: ISO 8601 DateTime format
+          - Rule 7: Zod validation
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+
+            git push
+
+            gh pr comment ${{ github.event.pull_request.number }} -b "✅ **Auto-fix Applied**
+
+            I've automatically fixed all architecture violations and pushed the changes to this PR.
+
+            Please review the commit and verify the fixes are correct."
+          fi
