@@ -35,6 +35,8 @@ export async function initDatabase() {
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP NOT NULL,
         completed_at TIMESTAMP,
+        priority_level VARCHAR(10),
+        priority_set_at INTEGER,
         CONSTRAINT valid_status CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED'))
       )
     `)
