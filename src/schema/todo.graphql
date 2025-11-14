@@ -3,7 +3,7 @@
 # ✅ Regel 6: @deprecated Direktiven mit Migrationshinweisen
 
 """
-ISO 8601 DateTime scalar
+ISO 8601 DateTime scalar for timestamps
 """
 scalar DateTime
 
