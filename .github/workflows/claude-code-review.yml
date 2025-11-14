@@ -82,9 +82,37 @@ jobs:
           echo "Check PR comments for detailed feedback"
 
       - name: Auto-fix Architecture Violations
-        run: |
-          chmod +x .github/scripts/auto-fix-violations.js
-          node .github/scripts/auto-fix-violations.js
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          prompt: |
+            PR #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"
+
+            Your task: Apply ALL architecture fixes based on the inline review comments.
+
+            Steps:
+            1. Read architecture rules: cat architecture-rules.md
+            2. Get all inline comments from the review: gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments
+            3. For EACH inline comment that describes a violation:
+               - Read the file mentioned in the comment
+               - Apply the fix exactly as described in the comment
+               - Use the Edit tool to make the change
+            4. After fixing all violations, verify no issues remain
+
+            IMPORTANT:
+            - Fix ALL violations mentioned in inline comments
+            - Follow the exact fix suggestions from the comments
+            - Use architecture-rules.md as reference for proper patterns
+            - Make precise, surgical edits - don't change unrelated code
+            - If a comment suggests renaming snake_case to camelCase, do exactly that
+            - If a comment suggests SCREAMING_SNAKE_CASE for enum values, apply it
+
+            DO NOT create commits or push - just edit the files. The workflow will handle commits.
+
+          claude_args: |
+            --allowed-tools "Read,Edit,Bash(gh api:*),Bash(cat:*)"
+            --model claude-sonnet-4-20250514
 
       - name: Commit and Push Fixes
         if: success()
@@ -120,23 +148,30 @@ jobs:
           fi
 
       - name: Verify All Violations Fixed
+        uses: anthropics/claude-code-action@v1
         if: success()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🔍 Verifying all violations have been fixed..."
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # Pull the latest changes after auto-fix
-          git pull origin ${{ github.event.pull_request.head.ref }}
+          prompt: |
+            PR #${{ github.event.pull_request.number }}: Verification after auto-fix
 
-          # Run auto-fix script again in check-only mode
-          node .github/scripts/auto-fix-violations.js
+            Your task: Verify that ALL architecture violations have been fixed.
 
-          # Check if there are any remaining changes needed
-          git add src/
-          if git diff --staged --quiet; then
-            echo "✅ SUCCESS: All violations have been fixed! Code is now compliant."
+            Steps:
+            1. Read architecture-rules.md
+            2. Get the original inline comments: gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments
+            3. For EACH violation that was mentioned in the comments:
+               - Read the affected file
+               - Verify the fix has been applied correctly
+               - Check if the code now complies with the rule
+            4. Summarize the verification results
 
+            Then post a comment using gh pr comment:
+            - If ALL violations are fixed: Post success comment (see below)
+            - If ANY violations remain: Post failure comment and list remaining issues
+
+            Success comment format:
             gh pr comment ${{ github.event.pull_request.number }} -b "🎉 **Verification Complete**
 
             All architecture violations have been successfully fixed and verified.
@@ -144,16 +179,16 @@ jobs:
             The code is now fully compliant with all architecture rules defined in architecture-rules.md.
 
             ✅ Ready for review and merge!"
-          else
-            echo "❌ FAILURE: Some violations could not be automatically fixed!"
-            echo "The following files still have issues:"
-            git diff --staged --name-only
 
+            Failure comment format (if issues remain):
             gh pr comment ${{ github.event.pull_request.number }} -b "⚠️ **Manual Intervention Required**
 
-            Some architecture violations could not be automatically fixed.
+            Some architecture violations could not be automatically fixed:
 
-            Please review the remaining issues and fix them manually."
+            [List the remaining violations]
 
-            exit 1
-          fi
+            Please review and fix these manually."
+
+          claude_args: |
+            --allowed-tools "Read,Bash(gh api:*),Bash(gh pr comment:*),Bash(cat:*)"
+            --model claude-sonnet-4-20250514
