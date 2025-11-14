@@ -24,6 +24,7 @@ enum TodoStatus {
 
 """
 Notification frequency for todo reminders
+Allows users to configure reminder intervals
 """
 enum NotificationFrequency {
   DAILY
