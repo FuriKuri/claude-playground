@@ -1,0 +1,136 @@
+# ✅ Regel 1: Korrekte Namenskonventionen - PascalCase Types, camelCase Fields, SCREAMING_SNAKE_CASE Enums
+# ✅ Regel 4: ISO 8601 DateTime und Date Scalars
+# ✅ Regel 6: @deprecated Direktiven mit Migrationshinweisen
+
+"""
+ISO 8601 DateTime scalar
+"""
+scalar DateTime
+
+"""
+ISO 8601 Date scalar
+"""
+scalar Date
+
+"""
+Status eines Todos
+"""
+enum TodoStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+"""
+Todo Item
+"""
+type Todo {
+  id: ID!
+  title: String!
+  description: String
+  status: TodoStatus!
+  dueDate: Date
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  completedAt: DateTime
+
+  """
+  @deprecated Use 'description' field instead.
+  Will be removed on 2026-05-01.
+  """
+  notes: String @deprecated(reason: "Use 'description' field instead. Will be removed on 2026-05-01.")
+}
+
+"""
+Input für neues Todo
+"""
+input CreateTodoInput {
+  title: String!
+  description: String
+  dueDate: Date
+}
+
+"""
+Input für Todo-Update
+"""
+input UpdateTodoInput {
+  title: String
+  description: String
+  status: TodoStatus
+  dueDate: Date
+}
+
+"""
+Erfolgreiche Todo-Erstellung
+"""
+type CreateTodoSuccess {
+  todo: Todo!
+}
+
+"""
+Validierungsfehler
+"""
+type ValidationError {
+  message: String!
+  code: String!
+  fields: [FieldError!]!
+}
+
+"""
+Feld-spezifischer Fehler
+"""
+type FieldError {
+  field: String!
+  message: String!
+}
+
+"""
+Todo nicht gefunden
+"""
+type TodoNotFoundError {
+  message: String!
+  code: String!
+  todoId: ID!
+}
+
+"""
+Result-Typen für Mutations (✅ Regel 2: Union Types für strukturierte Fehlerbehandlung)
+"""
+union CreateTodoResult = CreateTodoSuccess | ValidationError
+union UpdateTodoResult = Todo | ValidationError | TodoNotFoundError
+union DeleteTodoResult = Todo | TodoNotFoundError
+
+type Query {
+  """
+  Alle Todos abrufen
+  """
+  todos(status: TodoStatus): [Todo!]!
+
+  """
+  Einzelnes Todo abrufen
+  """
+  todo(id: ID!): Todo
+}
+
+type Mutation {
+  """
+  Neues Todo erstellen
+  """
+  createTodo(input: CreateTodoInput!): CreateTodoResult!
+
+  """
+  Todo aktualisieren
+  """
+  updateTodo(id: ID!, input: UpdateTodoInput!): UpdateTodoResult!
+
+  """
+  Todo löschen
+  """
+  deleteTodo(id: ID!): DeleteTodoResult!
+
+  """
+  Todo als erledigt markieren
+  """
+  completeTodo(id: ID!): UpdateTodoResult!
+}

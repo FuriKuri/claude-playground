@@ -1,27 +1,21 @@
-name: Claude Code Review
+name: Claude Architecture Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+    types: [opened, synchronize, reopened]
+    paths:
+      - "src/**/*.ts"
+      - "src/**/*.tsx"
+      - "src/**/*.graphql"
+      - "src/**/*.js"
+      - "src/**/*.jsx"
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: read
       id-token: write
 
@@ -29,29 +23,124 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0  # Volle History für besseren Kontext
 
-      - name: Run Claude Code Review
+      - name: Run Claude Architecture Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          
           prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            # Architecture Review für PR #${{ github.event.pull_request.number }}
+            
+            **Repository**: ${{ github.repository }}
+            **PR Title**: ${{ github.event.pull_request.title }}
+            **PR Author**: @${{ github.event.pull_request.user.login }}
+            **Base Branch**: ${{ github.event.pull_request.base.ref }}
+            **Head Branch**: ${{ github.event.pull_request.head.ref }}
+            
+            ## Deine Aufgabe
+            
+            Führe ein detailliertes Architecture Review durch:
+            
+            1. **Lies die Architektur-Regeln**:
+               - Lies `architecture-rules.md` vollständig
+               - Verstehe alle Regeln und ihre Schweregrade (MUSS/SOLLTE)
+            
+            2. **Analysiere den PR**:
+               - Hole den PR Diff mit: `gh pr diff ${{ github.event.pull_request.number }}`
+               - Hole alle geänderten Dateien mit: `gh pr view ${{ github.event.pull_request.number }} --json files`
+               - Untersuche besonders:
+                 * GraphQL Schema-Dateien (.graphql)
+                 * Resolver/Service Code (.ts)
+                 * Event Publisher Code
+                 * Logging Statements
+                 * API Client Code
+                 * Health Check Endpoints
+            
+            3. **Prüfe gegen jede Regel**
+            
+            4. **Erstelle einen strukturierten Review-Report**:
+            # 🏗️ Architecture Review Report
+            
+            **PR**: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+            **Reviewed by**: Claude (Sonnet 4.5)
+            **Date**: $(date -I)
+            
+            ## 📊 Summary
+            
+            - **Status**: [✅ Approved / ⚠️ Approved with Comments / ❌ Changes Requested]
+            - **Rules Checked**: 10
+            - **MUSS Violations**: [Anzahl]
+            - **SOLLTE Violations**: [Anzahl]
+            - **Files Analyzed**: [Anzahl]
+            
+            ## 🔍 Detailed Findings
+            
+            [Für jeden Verstoß:]
+            
+            ### ❌ Violation: [Regel-ID] - [Regel-Name]
+            
+            **Severity**: [MUSS/SOLLTE]
+            **File**: `[pfad/zur/datei.ts]`
+            **Lines**: [X-Y]
+            
+            **Issue**:
+            [Beschreibung des Problems]
+            
+            **Current Code**:
+            [Aktueller Code-Snippet]
+            
+            **Recommendation**:
+            [Verbesserter Code-Snippet]
+            
+            **Why**: [Verweis auf ISO-Qualitätsmerkmal und Begründung]
+            
+            ---
+            
+            ## ✅ Positive Aspects
+            
+            [Was wurde gut gemacht?]
+            
+            ## 📝 Recommendation
+            
+            [Gesamtbewertung und nächste Schritte]
+            
+            ## 📚 References
+            
+            - Architecture Rules: `.claude/architecture-rules.md`
+            - [Links zu relevanten Dokumentation]
+            
+            5. **Poste den Review**:
+               - Verwende `gh pr comment ${{ github.event.pull_request.number }} --body-file review.md`
+               - Bei MUSS-Verstößen: Kommentiere auch direkt an den betroffenen Code-Zeilen
+            
+            ## Wichtige Hinweise
+            
+            - Sei konstruktiv und hilfreich, nicht kritisch
+            - Gib konkrete Code-Beispiele für Verbesserungen
+            - Erkläre das "Warum" hinter jeder Regel
+            - Betone auch positive Aspekte des PRs
+            - Bei Unklarheiten: Stelle Fragen statt anzunehmen
+            
+            ## Tools die du verwenden kannst
+            
+            - `gh pr diff` - Zeigt Änderungen
+            - `gh pr view` - Zeigt PR Details
+            - `gh pr comment` - Kommentiert den PR
+            - `cat` - Liest Dateien
+            - `grep` - Sucht in Dateien
+            
+            Beginne jetzt mit dem Review!
 
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+          claude_args: |
+            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr list:*),Bash(cat:*),Bash(grep:*),Bash(find:*)" 
+            --allowed-read-paths ".claude/*,src/*,docs/*" 
+            --model claude-sonnet-4-20250514
 
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
-
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
-
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-
+      - name: Check for Review Status
+        if: always()
+        run: |
+          echo "Claude review completed"
+          echo "Check PR comments for detailed feedback"
