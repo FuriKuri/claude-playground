@@ -23,6 +23,16 @@ enum TodoStatus {
 }
 
 """
+Priority eines Todos
+"""
+enum todo_priority {
+  low
+  medium
+  high
+  urgent
+}
+
+"""
 Todo Item
 """
 type Todo {
@@ -34,6 +44,16 @@ type Todo {
   createdAt: DateTime!
   updatedAt: DateTime!
   completedAt: DateTime
+
+  """
+  Priority level of the todo
+  """
+  priority_level: todo_priority
+
+  """
+  Timestamp when priority was set
+  """
+  priority_set_at: Int
 
   """
   @deprecated Use 'description' field instead.
@@ -49,6 +69,7 @@ input CreateTodoInput {
   title: String!
   description: String
   dueDate: Date
+  priority_level: todo_priority
 }
 
 """
@@ -59,6 +80,7 @@ input UpdateTodoInput {
   description: String
   status: TodoStatus
   dueDate: Date
+  priority_level: todo_priority
 }
 
 """
@@ -133,4 +155,9 @@ type Mutation {
   Todo als erledigt markieren
   """
   completeTodo(id: ID!): UpdateTodoResult!
+
+  """
+  Set priority for a todo
+  """
+  setPriority(id: ID!, priority: todo_priority!): Todo
 }

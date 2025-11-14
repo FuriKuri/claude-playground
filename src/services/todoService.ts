@@ -20,7 +20,9 @@ interface Todo {
   createdAt: string
   updatedAt: string
   completedAt?: string
-  notes?: string // ✅ Regel 6: Deprecated field for backward compatibility
+  notes?: string
+  priority_level?: string
+  priority_set_at?: number
 }
 
 // ✅ Regel 10: Circuit Breaker für DB-Operationen
@@ -60,14 +62,15 @@ class TodoService {
 
   async create(input: any): Promise<Todo> {
     const id = uuidv4()
-    const now = new Date().toISOString() // ✅ Regel 4: ISO 8601
+    const now = new Date().toISOString()
+    const priorityTimestamp = input.priority_level ? Date.now() : null
 
     const result = await withRetry<QueryResult>(() =>
       dbBreaker.fire(
-        `INSERT INTO todos (id, title, description, status, due_date, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO todos (id, title, description, status, due_date, created_at, updated_at, priority_level, priority_set_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
-        [id, input.title, input.description, 'PENDING', input.dueDate, now, now]
+        [id, input.title, input.description, 'PENDING', input.dueDate, now, now, input.priority_level, priorityTimestamp]
       )
     )
 
@@ -86,6 +89,7 @@ class TodoService {
     }
 
     const now = new Date().toISOString()
+    const priorityTimestamp = input.priority_level ? Date.now() : null
 
     const result = await withRetry<QueryResult>(() =>
       dbBreaker.fire(
@@ -94,10 +98,12 @@ class TodoService {
              description = COALESCE($3, description),
              status = COALESCE($4, status),
              due_date = COALESCE($5, due_date),
-             updated_at = $6
+             updated_at = $6,
+             priority_level = COALESCE($7, priority_level),
+             priority_set_at = COALESCE($8, priority_set_at)
          WHERE id = $1
          RETURNING *`,
-        [id, input.title, input.description, input.status, input.dueDate, now]
+        [id, input.title, input.description, input.status, input.dueDate, now, input.priority_level, priorityTimestamp]
       )
     )
 
@@ -153,6 +159,28 @@ class TodoService {
     return todo
   }
 
+  async setPriority(id: string, priority: string): Promise<Todo | null> {
+    const existing = await this.findById(id)
+    if (!existing) {
+      return null
+    }
+
+    const timestamp = Date.now()
+
+    const result = await withRetry<QueryResult>(() =>
+      dbBreaker.fire(
+        `UPDATE todos
+         SET priority_level = $2,
+             priority_set_at = $3
+         WHERE id = $1
+         RETURNING *`,
+        [id, priority, timestamp]
+      )
+    )
+
+    return this.mapRow(result.rows[0])
+  }
+
   private mapRow(row: any): Todo {
     return {
       id: row.id,
@@ -163,7 +191,9 @@ class TodoService {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       completedAt: row.completed_at,
-      notes: row.description // ✅ Regel 6: Deprecated field mapped for backward compatibility
+      notes: row.description,
+      priority_level: row.priority_level,
+      priority_set_at: row.priority_set_at
     }
   }
 }

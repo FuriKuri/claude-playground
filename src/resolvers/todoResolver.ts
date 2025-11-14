@@ -55,6 +55,19 @@ export const todoResolvers = {
   },
 
   Mutation: {
+    setPriority: async (_: any, { id, priority }: any, context: any) => {
+      console.log('Setting priority for todo:', id, priority)
+
+      const todo = await todoService.setPriority(id, priority)
+
+      if (!todo) {
+        throw new Error('Todo not found')
+      }
+
+      console.log('Priority set successfully')
+      return todo
+    },
+
     createTodo: async (_: any, { input }: any, context: any) => {
       const log = logger.child({ correlationId: context.correlationId })
 
