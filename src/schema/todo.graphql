@@ -34,7 +34,7 @@ enum TagColor {
 }
 
 """
-Tag für Todo kategorisierung
+Tag für Todo-Kategorisierung
 """
 type TodoTag {
   id: ID!
