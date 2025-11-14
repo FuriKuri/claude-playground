@@ -23,6 +23,16 @@ enum TodoStatus {
 }
 
 """
+Completion percentage categories
+"""
+enum completion_level {
+  not_started
+  in_progress
+  almost_done
+  finished
+}
+
+"""
 Notification frequency for todo reminders
 Allows users to configure reminder intervals for their tasks
 """
