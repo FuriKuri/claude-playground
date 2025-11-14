@@ -124,3 +124,40 @@ jobs:
 
             Please review the commit and verify the fixes are correct."
           fi
+
+      - name: Verify All Violations Fixed
+        if: success()
+        run: |
+          echo "🔍 Verifying all violations have been fixed..."
+
+          # Pull the latest changes after auto-fix
+          git pull origin ${{ github.event.pull_request.head.ref }}
+
+          # Run auto-fix script again in check-only mode
+          node .github/scripts/auto-fix-violations.js
+
+          # Check if there are any remaining changes needed
+          git add src/
+          if git diff --staged --quiet; then
+            echo "✅ SUCCESS: All violations have been fixed! Code is now compliant."
+
+            gh pr comment ${{ github.event.pull_request.number }} -b "🎉 **Verification Complete**
+
+            All architecture violations have been successfully fixed and verified.
+
+            The code is now fully compliant with all 10 architecture rules.
+
+            ✅ Ready for review and merge!"
+          else
+            echo "❌ FAILURE: Some violations could not be automatically fixed!"
+            echo "The following files still have issues:"
+            git diff --staged --name-only
+
+            gh pr comment ${{ github.event.pull_request.number }} -b "⚠️ **Manual Intervention Required**
+
+            Some architecture violations could not be automatically fixed.
+
+            Please review the remaining issues and fix them manually."
+
+            exit 1
+          fi
