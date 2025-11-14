@@ -33,6 +33,15 @@ enum NotificationFrequency {
 }
 
 """
+Reminder time options
+"""
+enum REMINDER_TIME {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+"""
 Tag color options
 """
 enum TagColor {
