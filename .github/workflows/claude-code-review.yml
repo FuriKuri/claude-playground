@@ -95,6 +95,9 @@ jobs:
           git config user.name "Claude Architecture Bot"
           git config user.email "claude-bot@anthropic.com"
 
+          # Configure git to use the GitHub token for authentication
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+
           git add src/
 
           if git diff --staged --quiet; then
