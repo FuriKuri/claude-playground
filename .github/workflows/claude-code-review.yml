@@ -33,28 +33,42 @@ jobs:
           
           prompt: |
             Review PR #${{ github.event.pull_request.number }}: "${{ github.event.pull_request.title }}"
+            Repo: ${{ github.repository }}
 
             Steps:
             1. Read rules: cat architecture-rules.md | head -500
             2. Get diff: gh pr diff ${{ github.event.pull_request.number }}
-            3. Check rules 1,2,3,4,7 (MUSS violations)
-            4. Post: gh pr comment ${{ github.event.pull_request.number }} -b "REVIEW"
+            3. Find violations (Rules 1,2,3,4,7 - MUSS)
+            4. For EACH violation: Create inline comment at exact line using:
+               gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
+                 -f body="❌ **Rule X Violation**\n\n[Description]\n\n**Fix**: [Suggestion]" \
+                 -f path="src/file.ts" \
+                 -f line=10 \
+                 -f side="RIGHT"
+            5. Post summary: gh pr comment ${{ github.event.pull_request.number }} -b "SUMMARY"
 
-            Focus:
+            Focus on:
             - Rule 1: Naming (PascalCase/camelCase/SCREAMING_SNAKE_CASE)
-            - Rule 2: Errors (Union types, structured)
-            - Rule 3: Logging (JSON, no console.log)
-            - Rule 4: Dates (ISO 8601)
-            - Rule 7: Validation (Zod)
+            - Rule 2: Errors (Union types, structured errors)
+            - Rule 3: Logging (JSON format, no console.log)
+            - Rule 4: Dates (ISO 8601, not Unix timestamps)
+            - Rule 7: Validation (explicit Zod validation)
 
-            Report:
-            # Architecture Review
-            ## Violations Found: X
-            [file:line - issue]
-            ## Status: [APPROVE/CHANGES_REQUESTED]
+            Summary format:
+            # 🏗️ Architecture Review Summary
+            ## Total Violations: X
+            - Rule 1: X violations
+            - Rule 2: X violations
+            - Rule 3: X violations
+            - Rule 4: X violations
+            - Rule 7: X violations
+
+            ## Status: [✅ APPROVED | ❌ CHANGES_REQUESTED]
+
+            See inline comments for details.
 
           claude_args: |
-            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr list:*),Bash(cat:*),Bash(grep:*),Bash(find:*)"
+            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr list:*),Bash(gh api:*),Bash(cat:*),Bash(grep:*),Bash(find:*)"
             --model claude-sonnet-4-20250514
 
       - name: Check for Review Status
