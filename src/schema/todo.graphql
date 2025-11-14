@@ -3,12 +3,12 @@
 # ✅ Regel 6: @deprecated Direktiven mit Migrationshinweisen
 
 """
-ISO 8601 DateTime scalar
+ISO 8601 DateTime scalar for timestamps
 """
 scalar DateTime
 
 """
-ISO 8601 Date scalar
+ISO 8601 Date scalar for date fields
 """
 scalar Date
 
@@ -34,7 +34,7 @@ enum TagColor {
 }
 
 """
-Tag für Todo kategorisierung
+Tag für Todo-Kategorisierung
 """
 type TodoTag {
   id: ID!
