@@ -67,7 +67,7 @@ type Todo {
   completedAt: DateTime
 
   """
-  Priority level for this todo
+  Priority level for this todo (1-5, higher is more important)
   """
   priorityLevel: Int
 
