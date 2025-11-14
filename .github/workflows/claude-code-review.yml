@@ -83,37 +83,9 @@ jobs:
           echo "Check PR comments for detailed feedback"
 
       - name: Auto-fix Architecture Violations
-        id: claude-autofix
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-
-          prompt: |
-            PR #${{ github.event.pull_request.number }}: Auto-fix architecture violations
-
-            TASK: Fix ALL architecture violations found in the code review.
-
-            Steps:
-            1. cat architecture-rules.md | head -500
-            2. Read the files with violations:
-               - src/schema/todo.graphql
-               - src/resolvers/todoResolver.ts
-               - src/services/todoService.ts
-
-            3. Fix ALL violations:
-               Rule 1: Rename todo_priority → TodoPriority, priority_level → priorityLevel, low → LOW, etc.
-               Rule 2: setPriority must return Union type (SetPriorityResult)
-               Rule 3: Replace console.log with logger.info/warn
-               Rule 4: Replace Date.now() with new Date().toISOString(), Int → DateTime scalar
-               Rule 7: Add Zod validation for setPriority input
-
-            4. Use Edit tool to fix each file
-            5. DO NOT commit or push - the workflow will do that
-
-            IMPORTANT: Fix the actual code files, not just comments!
-
-          claude_args: |
-            --model claude-sonnet-4-20250514
+        run: |
+          chmod +x .github/scripts/auto-fix-violations.sh
+          .github/scripts/auto-fix-violations.sh
 
       - name: Commit and Push Fixes
         if: success()
