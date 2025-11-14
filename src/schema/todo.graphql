@@ -23,6 +23,27 @@ enum TodoStatus {
 }
 
 """
+Tag color options
+"""
+enum TagColor {
+  BLUE
+  GREEN
+  RED
+  YELLOW
+  PURPLE
+}
+
+"""
+Tag für Todo kategorisierung
+"""
+type TodoTag {
+  id: ID!
+  tagName: String!
+  tagColor: TagColor!
+  createdAt: DateTime!
+}
+
+"""
 Todo Item
 """
 type Todo {
@@ -34,6 +55,11 @@ type Todo {
   createdAt: DateTime!
   updatedAt: DateTime!
   completedAt: DateTime
+
+  """
+  Tags associated with this todo
+  """
+  tags: [TodoTag!]!
 
   """
   @deprecated Use 'description' field instead.
@@ -95,11 +121,19 @@ type TodoNotFoundError {
 }
 
 """
+Success result for addTag mutation
+"""
+type AddTagSuccess {
+  tag: TodoTag!
+}
+
+"""
 Result-Typen für Mutations (✅ Regel 2: Union Types für strukturierte Fehlerbehandlung)
 """
 union CreateTodoResult = CreateTodoSuccess | ValidationError
 union UpdateTodoResult = Todo | ValidationError | TodoNotFoundError
 union DeleteTodoResult = Todo | TodoNotFoundError
+union AddTagResult = AddTagSuccess | TodoNotFoundError
 
 type Query {
   """
@@ -133,4 +167,9 @@ type Mutation {
   Todo als erledigt markieren
   """
   completeTodo(id: ID!): UpdateTodoResult!
+
+  """
+  Add a tag to a todo
+  """
+  addTag(todoId: ID!, tagName: String!, tagColor: TagColor!): AddTagResult!
 }

@@ -153,6 +153,27 @@ class TodoService {
     return todo
   }
 
+  async addTag(todoId: string, tagName: string, tagColor: string): Promise<any> {
+    const tagId = uuidv4()
+    const createdAt = new Date().toISOString()
+
+    const result = await withRetry<QueryResult>(() =>
+      dbBreaker.fire(
+        `INSERT INTO todo_tags (id, todo_id, tag_name, tag_color, created_at)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
+        [tagId, todoId, tagName, tagColor, createdAt]
+      )
+    )
+
+    return {
+      id: result.rows[0].id,
+      tagName: result.rows[0].tag_name,
+      tagColor: result.rows[0].tag_color,
+      createdAt: result.rows[0].created_at
+    }
+  }
+
   private mapRow(row: any): Todo {
     return {
       id: row.id,

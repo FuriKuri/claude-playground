@@ -84,8 +84,8 @@ jobs:
 
       - name: Auto-fix Architecture Violations
         run: |
-          chmod +x .github/scripts/auto-fix-violations.sh
-          .github/scripts/auto-fix-violations.sh
+          chmod +x .github/scripts/auto-fix-violations.js
+          node .github/scripts/auto-fix-violations.js
 
       - name: Commit and Push Fixes
         if: success()
