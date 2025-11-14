@@ -184,19 +184,29 @@ export const todoResolvers = {
       }
     },
 
-    addTag: async (_: any, { todoId, tag_name, tag_color }: any, context: any) => {
-      console.log('Adding tag to todo:', todoId, tag_name, tag_color)
+    addTag: async (_: any, { todoId, tagName, tagColor }: any, context: any) => {
+      const log = logger.child({ correlationId: context.correlationId })
+
+      log.info('Adding tag to todo', { todoId, tagName, tagColor })
 
       const todo = await todoService.findById(todoId)
 
       if (!todo) {
-        throw new Error('Todo not found')
+        return {
+          __typename: 'TodoNotFoundError',
+          message: 'Todo not found',
+          code: 'TODO_NOT_FOUND',
+          todoId
+        }
       }
 
-      const tag = await todoService.addTag(todoId, tag_name, tag_color)
+      const tag = await todoService.addTag(todoId, tagName, tagColor)
 
-      console.log('Tag added successfully:', tag)
-      return tag
+      log.info('Tag added successfully', { todoId, tagId: tag.id })
+      return {
+        __typename: 'AddTagSuccess',
+        tag
+      }
     }
   },
 
@@ -211,5 +221,9 @@ export const todoResolvers = {
 
   DeleteTodoResult: {
     __resolveType: (obj: any) => obj.__typename || 'Todo'
+  },
+
+  AddTagResult: {
+    __resolveType: (obj: any) => obj.__typename
   }
 }

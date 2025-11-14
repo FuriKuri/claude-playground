@@ -55,7 +55,7 @@ export async function initDatabase() {
         todo_id VARCHAR(36) NOT NULL REFERENCES todos(id) ON DELETE CASCADE,
         tag_name VARCHAR(50) NOT NULL,
         tag_color VARCHAR(20) NOT NULL,
-        created_timestamp BIGINT NOT NULL
+        created_at TIMESTAMP NOT NULL
       )
     `)
 
