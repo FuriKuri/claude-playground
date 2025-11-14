@@ -89,28 +89,27 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
           prompt: |
-            PR #${{ github.event.pull_request.number }}: Auto-fix architecture violations
+            Auto-fix architecture violations in PR #${{ github.event.pull_request.number }}
 
-            TASK: Fix ALL architecture violations found in the code review.
+            CRITICAL: You MUST use the Edit tool to fix the files! Just reading is not enough!
 
-            Steps:
-            1. cat architecture-rules.md | head -500
-            2. Read the files with violations:
-               - src/schema/todo.graphql
-               - src/resolvers/todoResolver.ts
-               - src/services/todoService.ts
+            Files to fix:
+            1. src/schema/todo.graphql - Fix enum names and fields
+            2. src/resolvers/todoResolver.ts - Remove console.log, add logger
+            3. src/services/todoService.ts - Replace Date.now() with ISO 8601
 
-            3. Fix ALL violations:
-               Rule 1: Rename todo_priority → TodoPriority, priority_level → priorityLevel, low → LOW, etc.
-               Rule 2: setPriority must return Union type (SetPriorityResult)
-               Rule 3: Replace console.log with logger.info/warn
-               Rule 4: Replace Date.now() with new Date().toISOString(), Int → DateTime scalar
-               Rule 7: Add Zod validation for setPriority input
+            Required changes:
+            • todo_priority → TodoPriority (enum name)
+            • low, medium, high, urgent → LOW, MEDIUM, HIGH, URGENT (enum values)
+            • priority_level → priorityLevel (field)
+            • priority_set_at → prioritySetAt (field)
+            • console.log(...) → logger.info(...) (add import logger)
+            • Date.now() → new Date().toISOString()
+            • Int timestamp → DateTime scalar
+            • Add Union type for setPriority mutation
+            • Add Zod validation
 
-            4. Use Edit tool to fix each file
-            5. DO NOT commit or push - the workflow will do that
-
-            IMPORTANT: Fix the actual code files, not just comments!
+            DO NOT commit - workflow will do that.
 
           claude_args: |
             --model claude-sonnet-4-20250514
