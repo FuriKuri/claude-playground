@@ -23,6 +23,16 @@ enum TodoStatus {
 }
 
 """
+Notification frequency for todo reminders
+Allows users to configure reminder intervals for their tasks
+"""
+enum NotificationFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+"""
 Tag color options
 """
 enum TagColor {
