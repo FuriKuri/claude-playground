@@ -41,36 +41,35 @@ jobs:
             IMPORTANT: You MUST create inline comments on specific code lines in the "Files changed" view!
 
             Steps:
-            1. cat architecture-rules.md | head -500
-            2. gh pr diff ${{ github.event.pull_request.number }}
-            3. Find ALL violations (Rules 1,2,3,4,7)
-            4. For EACH violation, create inline comment:
+            1. Read the complete architecture rules: cat architecture-rules.md
+            2. Review the PR changes: gh pr diff ${{ github.event.pull_request.number }}
+            3. Check compliance with ALL 10 architecture rules defined in architecture-rules.md
+            4. For EACH violation found, create an inline comment on the specific line:
 
             gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
-              -f body="❌ **Rule 1: Naming Convention**
+              -f body="❌ **Rule X: [Rule Name]**
 
-            The enum name \`todo_priority\` should use PascalCase.
+            [Description of the violation]
 
-            **Fix**: Rename to \`TodoPriority\`
+            **Fix**: [How to fix it]
 
-            **Why**: Rule 1 requires PascalCase for GraphQL types and enums (ISO 25010: Usability/Learnability)" \
-              -f path="src/schema/todo.graphql" \
-              -f line=28 \
+            **Why**: [Reference to rule in architecture-rules.md and ISO 25010 quality attribute]" \
+              -f path="[file path]" \
+              -f line=[line number] \
               -f side="RIGHT" \
               -f commit_id="${{ github.event.pull_request.head.sha }}"
 
-            5. After ALL inline comments: gh pr comment ${{ github.event.pull_request.number }} -b "# Review Summary
-            ✅ X inline comments posted
+            5. After ALL inline comments, post a summary: gh pr comment ${{ github.event.pull_request.number }} -b "# Architecture Review Summary
+
+            [Summary of violations found, grouped by rule]
+
             Status: CHANGES_REQUESTED"
 
-            Rules to check:
-            - Rule 1: PascalCase types, camelCase fields, SCREAMING_SNAKE_CASE enums
-            - Rule 2: Union types for mutations, structured errors
-            - Rule 3: Winston logger (JSON), NO console.log
-            - Rule 4: ISO 8601 DateTime, NO Unix timestamps
-            - Rule 7: Explicit Zod validation
-
-            CRITICAL: Create inline comment for EVERY single violation found!
+            CRITICAL:
+            - Review against ALL 10 rules from architecture-rules.md
+            - Create inline comment for EVERY single violation found
+            - Reference the specific rule number and name from architecture-rules.md
+            - Include ISO 25010 quality attribute in violation explanation
 
           claude_args: |
             --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr list:*),Bash(gh api:*),Bash(cat:*),Bash(grep:*),Bash(find:*)"
@@ -127,6 +126,8 @@ jobs:
 
       - name: Verify All Violations Fixed
         if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🔍 Verifying all violations have been fixed..."
 
