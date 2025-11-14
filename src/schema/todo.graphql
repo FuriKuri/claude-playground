@@ -67,6 +67,11 @@ type Todo {
   completedAt: DateTime
 
   """
+  Priority level for this todo
+  """
+  priority_level: Int
+
+  """
   Tags associated with this todo
   """
   tags: [TodoTag!]!
