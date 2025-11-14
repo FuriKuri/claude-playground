@@ -43,7 +43,7 @@ jobs:
             Steps:
             1. Read the complete architecture rules: cat architecture-rules.md
             2. Review the PR changes: gh pr diff ${{ github.event.pull_request.number }}
-            3. Check compliance with ALL 10 architecture rules defined in architecture-rules.md
+            3. Check compliance with ALL architecture rules defined in architecture-rules.md
             4. For EACH violation found, create an inline comment on the specific line:
 
             gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
@@ -66,7 +66,7 @@ jobs:
             Status: CHANGES_REQUESTED"
 
             CRITICAL:
-            - Review against ALL 10 rules from architecture-rules.md
+            - Review against ALL rules from architecture-rules.md
             - Create inline comment for EVERY single violation found
             - Reference the specific rule number and name from architecture-rules.md
             - Include ISO 25010 quality attribute in violation explanation
@@ -106,12 +106,7 @@ jobs:
 
           Applied by Claude Architecture Review workflow
 
-          Fixes:
-          - Rule 1: Naming conventions (PascalCase, camelCase, SCREAMING_SNAKE_CASE)
-          - Rule 2: Union types for error handling
-          - Rule 3: Winston logger instead of console.log
-          - Rule 4: ISO 8601 DateTime format
-          - Rule 7: Zod validation
+          Auto-fixed violations based on rules defined in architecture-rules.md
 
           Co-Authored-By: Claude <noreply@anthropic.com>"
 
@@ -146,7 +141,7 @@ jobs:
 
             All architecture violations have been successfully fixed and verified.
 
-            The code is now fully compliant with all 10 architecture rules.
+            The code is now fully compliant with all architecture rules defined in architecture-rules.md.
 
             ✅ Ready for review and merge!"
           else
