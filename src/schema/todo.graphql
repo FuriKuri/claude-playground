@@ -35,10 +35,10 @@ enum NotificationFrequency {
 """
 Reminder time options
 """
-enum reminder_time {
-  morning
-  afternoon
-  evening
+enum REMINDER_TIME {
+  MORNING
+  AFTERNOON
+  EVENING
 }
 
 """
