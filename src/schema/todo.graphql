@@ -25,10 +25,10 @@ enum TodoStatus {
 """
 Notification frequency for todo reminders
 """
-enum notification_frequency {
-  daily
-  weekly
-  monthly
+enum NotificationFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
 }
 
 """

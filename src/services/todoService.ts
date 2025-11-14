@@ -34,8 +34,8 @@ const dbBreaker = createCircuitBreaker<[string, any[]], QueryResult>(
 class TodoService {
   async findAll(status?: string): Promise<Todo[]> {
     const query = status
-      ? 'SELECT * FROM todos WHERE status = $1 ORDER BY created_at DESC'
-      : 'SELECT * FROM todos ORDER BY created_at DESC'
+      ? 'SELECT * FROM todos WHERE status = $1 ORDER BY createdAt DESC'
+      : 'SELECT * FROM todos ORDER BY createdAt DESC'
 
     const params = status ? [status] : []
 
@@ -64,7 +64,7 @@ class TodoService {
 
     const result = await withRetry<QueryResult>(() =>
       dbBreaker.fire(
-        `INSERT INTO todos (id, title, description, status, due_date, created_at, updated_at)
+        `INSERT INTO todos (id, title, description, status, dueDate, createdAt, updatedAt)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
         [id, input.title, input.description, 'PENDING', input.dueDate, now, now]
@@ -93,8 +93,8 @@ class TodoService {
          SET title = COALESCE($2, title),
              description = COALESCE($3, description),
              status = COALESCE($4, status),
-             due_date = COALESCE($5, due_date),
-             updated_at = $6
+             dueDate = COALESCE($5, dueDate),
+             updatedAt = $6
          WHERE id = $1
          RETURNING *`,
         [id, input.title, input.description, input.status, input.dueDate, now]
@@ -137,8 +137,8 @@ class TodoService {
       dbBreaker.fire(
         `UPDATE todos
          SET status = 'COMPLETED',
-             completed_at = $2,
-             updated_at = $2
+             completedAt = $2,
+             updatedAt = $2
          WHERE id = $1
          RETURNING *`,
         [id, now]
@@ -159,7 +159,7 @@ class TodoService {
 
     const result = await withRetry<QueryResult>(() =>
       dbBreaker.fire(
-        `INSERT INTO todo_tags (id, todo_id, tag_name, tag_color, created_at)
+        `INSERT INTO todoTags (id, todoId, tagName, tagColor, createdAt)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING *`,
         [tagId, todoId, tagName, tagColor, createdAt]
@@ -168,9 +168,9 @@ class TodoService {
 
     return {
       id: result.rows[0].id,
-      tagName: result.rows[0].tag_name,
-      tagColor: result.rows[0].tag_color,
-      createdAt: result.rows[0].created_at
+      tagName: result.rows[0].tagName,
+      tagColor: result.rows[0].tagColor,
+      createdAt: result.rows[0].createdAt
     }
   }
 
@@ -180,10 +180,10 @@ class TodoService {
       title: row.title,
       description: row.description,
       status: row.status,
-      dueDate: row.due_date,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      completedAt: row.completed_at,
+      dueDate: row.dueDate,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      completedAt: row.completedAt,
       notes: row.description // ✅ Regel 6: Deprecated field mapped for backward compatibility
     }
   }
