@@ -48,6 +48,21 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_todos_created_at ON todos(created_at DESC)
     `)
 
+    // Create todo_tags table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS todo_tags (
+        id VARCHAR(36) PRIMARY KEY,
+        todo_id VARCHAR(36) NOT NULL REFERENCES todos(id) ON DELETE CASCADE,
+        tag_name VARCHAR(50) NOT NULL,
+        tag_color VARCHAR(20) NOT NULL,
+        created_timestamp BIGINT NOT NULL
+      )
+    `)
+
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_todo_tags_todo_id ON todo_tags(todo_id)
+    `)
+
     logger.info('Database initialized successfully')
   } catch (error: any) {
     logger.error('Database initialization failed', { error: error.message })

@@ -182,6 +182,21 @@ export const todoResolvers = {
           }
         })
       }
+    },
+
+    addTag: async (_: any, { todoId, tag_name, tag_color }: any, context: any) => {
+      console.log('Adding tag to todo:', todoId, tag_name, tag_color)
+
+      const todo = await todoService.findById(todoId)
+
+      if (!todo) {
+        throw new Error('Todo not found')
+      }
+
+      const tag = await todoService.addTag(todoId, tag_name, tag_color)
+
+      console.log('Tag added successfully:', tag)
+      return tag
     }
   },
 

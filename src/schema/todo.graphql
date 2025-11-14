@@ -23,6 +23,27 @@ enum TodoStatus {
 }
 
 """
+Tag color options
+"""
+enum tag_color {
+  blue
+  green
+  red
+  yellow
+  purple
+}
+
+"""
+Tag für Todo kategorisierung
+"""
+type TodoTag {
+  id: ID!
+  tag_name: String!
+  tag_color: tag_color!
+  created_timestamp: Int!
+}
+
+"""
 Todo Item
 """
 type Todo {
@@ -34,6 +55,11 @@ type Todo {
   createdAt: DateTime!
   updatedAt: DateTime!
   completedAt: DateTime
+
+  """
+  Tags associated with this todo
+  """
+  tags: [TodoTag!]!
 
   """
   @deprecated Use 'description' field instead.
@@ -133,4 +159,9 @@ type Mutation {
   Todo als erledigt markieren
   """
   completeTodo(id: ID!): UpdateTodoResult!
+
+  """
+  Add a tag to a todo
+  """
+  addTag(todoId: ID!, tag_name: String!, tag_color: tag_color!): TodoTag
 }
