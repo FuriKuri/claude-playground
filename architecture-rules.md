@@ -4,7 +4,7 @@ Version 1.0 | Last Updated: 2025-11-14
 
 ## Über dieses Dokument
 
-Diese Regeln definieren verbindliche Standards für die Entwicklung von Services in unserer Organisation. Sie basieren auf dem ISO/IEC 25010 Qualitätsmodell und sind inspiriert von bewährten Praktiken aus der Makroarchitektur.
+Diese Regeln definieren verbindliche Standards für die Entwicklung von Services in unserer Organisation. Sie basieren auf dem ISO/IEC 25010 Qualitätsmodell.
 
 ### Kategorien
 
